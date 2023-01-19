@@ -214,7 +214,7 @@ The available services are:
 - `grafana`
 -->
 
-### Updates
+### Software updates
 
 ```sh
 docker compose pull
@@ -225,7 +225,10 @@ Updates are regularly pushed to improve the stability of Optimism nodes or to in
 I recommend that you run this command every once in a while (once a week should be more than enough).
 If you intend to maintain an Optimism node for a long time, it's also worth subscribing to the [Optimism Public Changelog](https://changelog.optimism.io/) via either [RSS](https://changelog.optimism.io/feed.xml) or the [optimism-announce@optimism.io mailing list](https://groups.google.com/a/optimism.io/g/optimism-announce).
     
+
+## Using the node
     
+To use the node specify the URL `http://<node IP>:9991` as the JSON RPC URL.
     
 <!-- 
     
