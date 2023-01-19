@@ -5,6 +5,13 @@ I've created this repository to make that process as simple as possible.
 You should be relatively familiar with running commands on your machine.
 Let's do it!
 
+**Note:** The Optimism Goerli testnet was upgraded to Bedrock on Thursday January 12th 2023.
+These directions apply to the Bedrock version.
+[See here](https://github.com/smartcontracts/simple-optimism-node) for directions for mainnet which is still pre-Bedrock at writing.
+
+Please also report any bugs that you find, it'll help speed up the process of getting to production Goerli Bedrock nodes.
+Thank you!
+
 ## Required Software
 
 - [docker](https://docs.docker.com/engine/install/)
@@ -26,7 +33,6 @@ Usage as of 2022-09-21:
 ## Installation and Setup Instructions
 
 Instructions here should work for MacOS and most Linux distributions.
-I probably won't include instructions for Windows because I'm lazy.
 
 ### Clone the Repository
 
@@ -101,16 +107,10 @@ docker info | grep -i "Docker Root Dir"
 </details>    
 
 
-## Bedrock
+### Current limitations
 
-The Optimism Goerli testnet was upgraded to Bedrock on Thursday January 12th 2023.
-You can run a Goerli Bedrock node with some limitations as described in the [Current Limitations](#current-limitations) section below.
-Please read those limitations carefully, they'll be updated and removed as I work on additional features.
-
-Please also report any bugs that you find, it'll help speed up the process of getting to production Goerli Bedrock nodes.
-Thank you!
-
-### Current Limitations
+We are in the middle of the Bedrock upgrade. 
+While the basic functionality is available when you create a node using this document, some advanced features are not yet supported:
 
 - Legacy database migration is not yet supported, all Goerli Bedrock nodes will be started from a pre-migrated database downloaded via torrent.
 - Nodes seed the pre-migrated database torrent by default. Upload limits cannot yet be configured.
@@ -118,7 +118,7 @@ Thank you!
 - No legacy node request forwarding.
 - No fault detector or healthcheck service.
 
-### Configure the Node
+## Configure the node
 
 Make a copy of `.env.example` named `.env`.
 
@@ -139,13 +139,13 @@ Only the following variables are required for Bedrock:
 
 You can also modify any of the optional environment variables if you'd wish, but the defaults should work perfectly well for most people.
 
-#### The OP_NODE__RPC_TYPE variable
+### The OP_NODE__RPC_TYPE variable
 
 The `OP_NODE__RPC_TYPE` environment variable tells the `op-node` service what type of RPC it's connected to.
 This allows `op-node` to make more efficient requests with custom RPCs that may only be available on some RPCs.
 It is HIGHLY recommended to set this variable to the appropriate provider or you may experience rate limits and/or excessive requests to your RPC.
 
-### Initial synchronization
+## Initial synchronization
 
 You start the node with this command:
     
@@ -164,23 +164,18 @@ docker compose logs op-geth | grep "Chain head was updated" | tail -1
 Part of this log entry is the age on the latest block.
 When this value is sufficiently small (a few minutes), the replica is ready for use.    
     
-### Operating the node
+## Operating the node
 
-#### Start
+### Start
 
 ```sh
 docker compose up -d
 ```
 
 Will start the node in a detatched shell (`-d`), meaning the node will continue to run in the background.
-
-##### Synchronization
     
-Now 
-    
-    
-    
-#### Stop
+        
+### Stop
 
 ```sh
 docker compose down
@@ -189,7 +184,7 @@ docker compose down
 Will shut down the node without wiping any volumes.
 You can safely run this command and then restart the node again.
 
-#### Wipe
+### Wipe
 
 ```sh
 docker compose down -v
@@ -199,7 +194,7 @@ Will completely wipe the node by removing the volumes that were created for each
 This is a complete reset, and synchronization will be required after it is done.
 
 
-#### Logs
+### Logs
 
 ```sh
 docker compose logs <service name>
@@ -219,7 +214,7 @@ The available services are:
 - `grafana`
 -->
 
-#### Updates
+### Updates
 
 ```sh
 docker compose pull
