@@ -28,7 +28,33 @@ Usage as of 2022-09-21:
 Instructions here should work for MacOS and most Linux distributions.
 I probably won't include instructions for Windows because I'm lazy.
 
-### Configure Docker as a Non-Root User (Optional)
+### Clone the Repository
+
+```sh
+git clone https://github.com/smartcontracts/simple-optimism-node.git
+cd simple-optimism-node
+```
+
+### Torrents
+
+`simple-optimism-node` uses torrents to download certain configuration files and databases as a decentralized alternative to a central server hosting everything.
+By default, the torrent port is 6881 but can be configured with the `PORT__TORRENT` environment variable.
+
+If you have a firewall, you will need to expose the torrent port to the internet to be able to download things:
+
+```sh
+uwf allow 6881
+```
+
+### Optional steps
+
+<details>
+    
+<summary>
+
+#### Configure docker as a non-root user
+
+</summary>
 
 If you're planning to run Docker as a root user, you can safely skip this step.
 However, if you're using Docker as a non-root user, you'll need to add yourself to the `docker` user group:
@@ -39,43 +65,18 @@ sudo usermod -a -G docker `whoami`
 
 You'll need to log out and log in again for this change to take effect.
 
-### Clone the Repository
+</details>    
 
-```sh
-git clone https://github.com/smartcontracts/simple-optimism-node.git
-cd simple-optimism-node
-```
 
-<!--
+<details>
+    
+<summary>
+    
+#### Setting a docker data directory
 
-### Configure the Node
-
-Make a copy of `.env.example` named `.env`.
-
-```sh
-cp .env.example .env
-```
-
-Open `.env` with your editor of choice and fill out the environment variables listed inside that file.
-Only the following variables are required:
-
-| Variable Name                           | Description                                                               |
-|-----------------------------------------|---------------------------------------------------------------------------|
-| `NETWORK_NAME`                          | Network to run the node on ("mainnet" or "goerli")                            |
-| `NODE_TYPE`                             | Type of node to run ("full" or "archive")                                      |
-| `SYNC_SOURCE`                           | Where to sync data from ("l1" or "l2")                                        |
-| `HEALTHCHECK__REFERENCE_RPC_PROVIDER`   | Another reference L2 node to check blocks against, just in case              |
-| `FAULT_DETECTOR__L1_RPC_PROVIDER`       | L1 node RPC to check state roots against                                  |
-| `DATA_TRANSPORT_LAYER__RPC_ENDPOINT`    | Node to get chain data from, must be an L1 node if `SYNC_SOURCE` is "l1" and vice versa for L2 |
-
-You can get L1/L2 RPC endpoints from [these node providers](https://community.optimism.io/docs/useful-tools/providers/).
-
-You can also modify any of the optional environment variables if you'd wish, but the defaults should work perfectly well for most people.
-Just make sure not to change anything under the line marked "NO TOUCHING" or you might break something!
-
-### Setting a Data Directory (Optional)
-
-Please note that this is an *optional* step but might be useful for anyone who was confused as I was about how to make Docker point at disk other than your primary disk.
+</summary>    
+    
+This step might be useful for anyone who was confused as I was about how to make Docker point at disk other than your primary disk.
 If you'd like your Docker data to live on a disk other than your primary disk, create a file `/etc/docker/daemon.json` with the following contents:
 
 ```json
@@ -97,114 +98,12 @@ Confirm that the changes were properly applied:
 docker info | grep -i "Docker Root Dir"
 ```
 
-### Operating the Node
+</details>    
 
-#### Start
-
-```sh
-docker compose up -d
-```
-
-Will start the node in a detatched shell (`-d`), meaning the node will continue to run in the background.
-You will need to run this again if you ever turn your machine off.
-
-The first time you start the node it synchronizes from regenesis (November 11th, 2021) to the present.
-This process takes hours.
-
-#### Stop
-
-```sh
-docker compose down
-```
-
-Will shut down the node without wiping any volumes.
-You can safely run this command and then restart the node again.
-
-#### Wipe
-
-```sh
-docker compose down -v
-```
-
-Will completely wipe the node by removing the volumes that were created for each container.
-Note that this is a destructive action, be very careful!
-
-#### Logs
-
-```sh
-docker compose logs <service name>
-```
-
-Will display the logs for a given service.
-You can also follow along with the logs for a service in real time by adding the flag `-f`.
-
-The available services are:
-- [`dtl` and `l2geth`](#optimism-node)
-- [`healthcheck` and `fault-detector`](#healthcheck--fault-detector)
-- [`prometheus`, `grafana`, and `influxdb`](#metrics-dashboard)
-
-
-#### Update
-
-```sh
-docker compose pull
-```
-
-Will download the latest images for any services where you haven't hard-coded a service version.
-Updates are regularly pushed to improve the stability of Optimism nodes or to introduce new quality-of-life features like better logging and better metrics.
-I recommend that you run this command every once in a while (once a week should be more than enough).
-If you intend to maintain an Optimism node for a long time, it's also worth subscribing to the [Optimism Public Changelog](https://changelog.optimism.io/) via either [RSS](https://changelog.optimism.io/feed.xml) or the [optimism-announce@optimism.io mailing list](https://groups.google.com/a/optimism.io/g/optimism-announce).
-
-## What's Included
-
-### Optimism Node
-
-Currently, an Optimism node can either sync from L1 or from other L2 nodes.
-Syncing from L1 is generally the safest option but takes longer.
-A node that syncs from L1 will also lag behind the tip of the chain depending on how long it takes for the Optimism Sequencer to publish transactions to Ethereum.
-Syncing from L2 is faster but (currently) requires trusting the L2 node you're syncing from.
-
-Many people are running nodes that sync from other L2 nodes, but I'd like to incentivize more people to run nodes that sync directly from L1.
-As a result, I've set this repository up to sync from L1 by default.
-I may later add the option to sync from L2 but I need to go do other things for a while.
-
-### Healthcheck
-
-When you run your Optimism node using these instructions, you will also be running two services that monitor the health of your node and the health of the network.
-The Healthcheck service will constantly compare the state computed by your node to the state of some other reference node.
-This is a great way to confirm that your node is syncing correctly.
-
-### Fault Detector
-
-The Fault Detector service will continuously scan the transaction results published by the Optimism Sequencer and cross-check them against the transaction results that your node generated locally.
-**If there's ever a discrepancy between these two values, please complain very loudly!**
-This either means that the Sequencer has published an invalid transaction result or there's a bug in your node software and an Optimism developer needs to know about it.
-In the future, this service will trigger Cannon, the fault proving mechanism that Optimism is building as part of its Bedrock upgrade.
-
-The Fault Detector exposes several metrics that can be used to determine whether your node has detected a discrepancy including the `is_currently_diverged` gauge. The Fault Detector also exposes a simple API at `localhost:$PORT__FAULT_DETECTOR_METRICS/api/status` which returns `{ ok: boolean }`. You can use this API to monitor the status of the Fault Detector from another application.
-
-### Metrics Dashboard
-
-Grafana is exposed at [http://localhost:3000](http://localhost:3000) and comes with one pre-loaded dashboard ("Simple Node Dashboard").
-Simple Node Dashboard includes basic node information and will tell you if your node ever falls out of sync with the reference L2 node or if a state root fault is detected.
-
-Use the following login details to access the dashboard:
-
-* Username: `admin`
-* Password: `optimism`
-
-Navigate over to `Dashboards > Manage > Simple Node Dashboard` to see the dashboard, see the following gif if you need help:
-
-![metrics dashboard gif](https://user-images.githubusercontent.com/14298799/171476634-0cb84efd-adbf-4732-9c1d-d737915e1fa7.gif)
-
--->
 
 ## Bedrock
 
-Note: this is a temporary section while I work on full Bedrock support.
-
 The Optimism Goerli testnet was upgraded to Bedrock on Thursday January 12th 2023.
-I am in the process of working on full Bedrock support within `simple-optimism-node`.
 You can run a Goerli Bedrock node with some limitations as described in the [Current Limitations](#current-limitations) section below.
 Please read those limitations carefully, they'll be updated and removed as I work on additional features.
 
@@ -246,34 +145,125 @@ The `OP_NODE__RPC_TYPE` environment variable tells the `op-node` service what ty
 This allows `op-node` to make more efficient requests with custom RPCs that may only be available on some RPCs.
 It is HIGHLY recommended to set this variable to the appropriate provider or you may experience rate limits and/or excessive requests to your RPC.
 
-### Operating the Node
+### Initial synchronization
+
+You start the node with this command:
+    
+```sh
+docker compose up -d
+```
+    
+When you start it it will synchronize (get the transaction history).    
+
+To know when the synchronization is over use this command to get the latest synchronized block:
+    
+```sh
+docker compose logs op-geth | grep "Chain head was updated" | tail -1
+```
+    
+Part of this log entry is the age on the latest block.
+When this value is sufficiently small (a few minutes), the replica is ready for use.    
+    
+### Operating the node
 
 #### Start
 
 ```sh
-docker compose -f docker-compose.bedrock.yml up -d
+docker compose up -d
 ```
 
+Will start the node in a detatched shell (`-d`), meaning the node will continue to run in the background.
+
+##### Synchronization
+    
+Now 
+    
+    
+    
 #### Stop
 
 ```sh
-docker compose -f docker-compose.bedrock.yml down
+docker compose down
 ```
+
+Will shut down the node without wiping any volumes.
+You can safely run this command and then restart the node again.
 
 #### Wipe
 
 ```sh
-docker compose -f docker-compose.bedrock.yml down -v
+docker compose down -v
 ```
 
-### Torrents
+Will completely wipe the node by removing the volumes that were created for each container.
+This is a complete reset, and synchronization will be required after it is done.
 
-Note: the built-in torrent client is a Bedrock-only feature.
 
-`simple-optimism-node` uses torrents to download certain configuration files and databases as a decentralized alternative to a central server hosting everything.
-By default, the torrent port is 6881 but can be configured with the `PORT__TORRENT` environment variable.
-You will need to expose the torrent port to the internet to be able to download things:
+#### Logs
 
 ```sh
-uwf allow 6881
+docker compose logs <service name>
 ```
+
+Will display the logs for a given service.
+You can also follow along with the logs for a service in real time by adding the flag `-f`.
+
+The available services are:
+- `op-geth`
+- `op-node`
+- `influxdb`
+- `torrent`
+
+<!--
+- `prometheus`
+- `grafana`
+-->
+
+#### Updates
+
+```sh
+docker compose pull
+```
+
+Will download the latest images for any services where you haven't hard-coded a service version.
+Updates are regularly pushed to improve the stability of Optimism nodes or to introduce new quality-of-life features like better logging and better metrics.
+I recommend that you run this command every once in a while (once a week should be more than enough).
+If you intend to maintain an Optimism node for a long time, it's also worth subscribing to the [Optimism Public Changelog](https://changelog.optimism.io/) via either [RSS](https://changelog.optimism.io/feed.xml) or the [optimism-announce@optimism.io mailing list](https://groups.google.com/a/optimism.io/g/optimism-announce).
+    
+    
+    
+<!-- 
+    
+## Additional components
+    
+### Metrics dashboard
+
+Grafana is exposed at [http://localhost:3000](http://localhost:3000) and comes with one pre-loaded dashboard ("Simple Node Dashboard").
+Simple Node Dashboard includes basic node information and will tell you if your node ever falls out of sync with the reference L2 node or if a state root fault is detected.
+
+Use the following login details to access the dashboard:
+
+* Username: `admin`
+* Password: `optimism`
+
+Navigate over to `Dashboards > Manage > Simple Node Dashboard` to see the dashboard, see the following gif if you need help:
+
+![metrics dashboard gif](https://user-images.githubusercontent.com/14298799/171476634-0cb84efd-adbf-4732-9c1d-d737915e1fa7.gif)
+
+
+### Healthcheck
+
+When you run your Optimism node using these instructions, you will also be running two services that monitor the health of your node and the health of the network.
+The Healthcheck service will constantly compare the state computed by your node to the state of some other reference node.
+This is a great way to confirm that your node is syncing correctly.
+
+### Fault Detector
+
+The Fault Detector service will continuously scan the transaction results published by the Optimism Sequencer and cross-check them against the transaction results that your node generated locally.
+**If there's ever a discrepancy between these two values, please complain very loudly!**
+This either means that the Sequencer has published an invalid transaction result or there's a bug in your node software and an Optimism developer needs to know about it.
+In the future, this service will trigger Cannon, the fault proving mechanism that Optimism is building as part of its Bedrock upgrade.
+
+The Fault Detector exposes several metrics that can be used to determine whether your node has detected a discrepancy including the `is_currently_diverged` gauge. The Fault Detector also exposes a simple API at `localhost:$PORT__FAULT_DETECTOR_METRICS/api/status` which returns `{ ok: boolean }`. You can use this API to monitor the status of the Fault Detector from another application.
+
+-->
