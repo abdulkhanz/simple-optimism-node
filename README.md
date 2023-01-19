@@ -22,6 +22,7 @@ Usage as of 2022-09-21:
 - Archive node: ~800gb
 - Full node: ~60gb
 
+
 ## Installation and Setup Instructions
 
 Instructions here should work for MacOS and most Linux distributions.
@@ -44,6 +45,8 @@ You'll need to log out and log in again for this change to take effect.
 git clone https://github.com/smartcontracts/simple-optimism-node.git
 cd simple-optimism-node
 ```
+
+<!--
 
 ### Configure the Node
 
@@ -193,6 +196,8 @@ Use the following login details to access the dashboard:
 Navigate over to `Dashboards > Manage > Simple Node Dashboard` to see the dashboard, see the following gif if you need help:
 
 ![metrics dashboard gif](https://user-images.githubusercontent.com/14298799/171476634-0cb84efd-adbf-4732-9c1d-d737915e1fa7.gif)
+
+-->
 
 ## Bedrock
 
