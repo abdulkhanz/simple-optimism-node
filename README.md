@@ -232,12 +232,11 @@ Only the following variables are required for Bedrock:
 
 | Variable Name                           | Description                                                               |
 |-----------------------------------------|---------------------------------------------------------------------------|
-| `NETWORK_NAME`                          | Network to run the node on ("mainnet" or "goerli")                            |
-| `NODE_TYPE`                             | Type of node to run ("full" or "archive")                                      |
-| `BEDROCK_SOURCE`                           | Where to get the Bedrock database from (only "download" supported for now)                                        |
+| `NETWORK_NAME`                          | Network to run the node on (currently only `goerli` is supported)         |
+| `NODE_TYPE`                             | Type of node to run (`full` or `archive`)                                 |
+| `BEDROCK_SOURCE`                        | Where to get the Bedrock database from (only `download` supported for now)   |
 | `OP_NODE__RPC_ENDPOINT`                 | L1 node that the op-node will get chain data from
- |
-| `OP_NODE__RPC_TYPE`                     | Type of RPC that you're connected to, available options are: "alchemy", "quicknode", "infura", "parity", "nethermind", "debug_geth", "erigon", and "basic" |
+| `OP_NODE__RPC_TYPE`                     | Type of RPC that you're connected to, available options are: `alchemy`, `quicknode`, `infura`, `parity`, `nethermind`, `debug_geth`, `erigon`, and `basic` |
 
 You can also modify any of the optional environment variables if you'd wish, but the defaults should work perfectly well for most people.
 
